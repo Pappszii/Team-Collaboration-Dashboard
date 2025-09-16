@@ -4,22 +4,21 @@ services:
     image: postgres:15
     restart: always
     environment:
-      POSTGRES_USER: dbuser
-      POSTGRES_PASSWORD: secret
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: password
       POSTGRES_DB: teamdb
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dbuser"]
+      test: ["CMD-SHELL", "pg_isready -U appuser"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   backend:
     build: ./backend
-    command: npm run start:dev
     volumes:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
@@ -29,7 +28,21 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgres://dbuser:secret@db:5432/teamdb
+      DATABASE_URL: postgres://appuser:password@db:5432/teamdb
+    command: sh -c "npx prisma migrate deploy && npm run start:dev"
+
+  studio:
+    build: ./backend
+    command: npx prisma studio --port 5555 --hostname 0.0.0.0
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - "5555:5555"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://appuser:password@db:5432/teamdb
 
 volumes:
   postgres_data:
