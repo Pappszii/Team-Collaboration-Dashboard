@@ -8,7 +8,7 @@ export class TeamsController {
 
   @Post()
   create(@Body('name') teamDto: CreateTeamDto) {
-    return this.teamsService.create(teamDto);
+    return this.teamsService.create(teamDto.name);
   }
 
   @Get()

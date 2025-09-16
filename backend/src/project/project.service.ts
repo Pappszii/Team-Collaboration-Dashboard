@@ -1,45 +1,37 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
-import { UpdateProjectDto } from 'src/project/models/update-project.dto';
-
+import { Project } from '@prisma/client';
+import { CreateProjectDto } from './models/create-project.dto';
+import { UpdateProjectDto } from './models/update-project.dto';
 
 @Injectable()
 export class ProjectsService {
   constructor(private prisma: PrismaService) {}
 
-  create(dto: UpdateProjectDto) {
+  create(dto: CreateProjectDto): Promise<Project> {
     return this.prisma.project.create({
-      data: {
-        title: dto.title,
-        teamId: dto.teamId ?? null,
-      },
+      data: { title: dto.title, teamId: dto.teamId },
     });
   }
 
-  findAll() {
-    return this.prisma.project.findMany({
-      include: { team: true },
-    });
-  }
-
-  findOne(id: number) {
-    return this.prisma.project.findUnique({
-      where: { id },
-      include: { team: true },
-    });
-  }
-
-  update(id: number, dto: UpdateProjectDto) {
+  update(id: number, dto: UpdateProjectDto): Promise<Project> {
     return this.prisma.project.update({
       where: { id },
-      data: {
-        title: dto.title,
-        teamId: dto.teamId,
-      },
+      data: { title: dto.title, teamId: dto.teamId },
     });
   }
 
-  remove(id: number) {
+  findAll(): Promise<Project[]> {
+    return this.prisma.project.findMany();
+  }
+
+  findOne(id: number): Promise<Project | null> {
+    return this.prisma.project.findUnique({
+      where: { id },
+    });
+  }
+
+  async remove(id: number): Promise<Project> {
     return this.prisma.project.delete({
       where: { id },
     });
